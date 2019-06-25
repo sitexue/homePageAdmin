@@ -37,7 +37,7 @@ export const constantRouterMap = [
       component: () => import('@/views/dashboard/index')
     }]
   },
-  {
+  /* {
     path:'/userManage',
     component: Layout,
     redirect: '/userManage/userList',
@@ -49,13 +49,14 @@ export const constantRouterMap = [
       component: () => import('@/views/userManage/userList'),
       meta: { title: '用户列表', icon: 'user' },
     }]
-  },
+  }, */
   {
     path:'/blogManage',
     component: Layout,
     redirect: '/blogManage/notes',
     name: 'blogManage',
     meta: { title: '博客管理', icon: 'nested' },
+    alwaysShow: true,
     children: [{
       path: 'notes',
       name: 'notesList',
@@ -89,6 +90,17 @@ export const constantRouterMap = [
       name: 'talkEdit',
       component: () => import('@/views/blogManage/talk/add'),
       meta: { title: '编辑说说', icon: 'nested' },
+      hidden: true
+    },{
+      path: 'photo',
+      name: 'photoList',
+      component: () => import('@/views/blogManage/photo/list'),
+      meta: { title: '相册', icon: 'example' },
+    },{
+      path: 'photo/edit/:album_id',
+      name: 'photoEdit',
+      component: () => import('@/views/blogManage/photo/edit'),
+      meta: { title: '相册编辑', icon: 'example' },
       hidden: true
     }]
   },

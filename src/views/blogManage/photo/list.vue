@@ -1,6 +1,9 @@
-<!-- 用户列表页 -->
+<!-- 相册 -->
 <template>
-  <div class="table-box">
+  <div class="table-box notes">
+    <el-row class="table-box-title">
+      <el-button type="primary" @click="openAdd">新增相册</el-button>
+    </el-row>
     <el-table
       size="mini"
       ref="table"
@@ -11,9 +14,8 @@
       element-loading-text="数据加载中..."
     >
       <el-table-column label="序号" type="index" :index="tableIndex" align="center" fixed="left"></el-table-column>
-      <el-table-column prop="name" label="用户名" align="center"></el-table-column>
+      <el-table-column prop="title" label="相册标题" align="center"></el-table-column>
       <el-table-column prop="createTime" label="创建时间" align="center"></el-table-column>
-      <el-table-column prop="lastTime" label="最近登录时间" align="center"></el-table-column>
       <el-table-column label="操作" align="center" width="300" fixed="right">
         <template slot-scope="scope">
           <el-button
@@ -22,6 +24,12 @@
             plain
             @click="handleEdit(scope.row,scope.$index)"
           >修改</el-button>
+          <el-button
+            size="mini"
+            type="primary"
+            plain
+            @click="linkEdit(scope.row,scope.$index)"
+          >编辑</el-button>
           <el-button
             size="mini"
             type="primary"
@@ -44,16 +52,16 @@
       ></el-pagination>
     </div>
 
-    <!-- 编辑弹出 -->
+    <!-- 新增、编辑弹出 -->
     <el-dialog 
     :visible.sync="editShow" 
     model
-    title="编辑用户信息">
-      <el-form :model="editInfo" :rules="editRules" ref="editInfo" class="creatForm" size="mini" label-width="80px">
-        <el-form-item label="用户名" prop="name">
-          <el-input size="medium" clearable v-model="editInfo.name"></el-input>
+    title="编辑相册">
+      <el-form :model="createForm" :rules="editRules" ref="createForm" class="creatForm" size="mini" label-width="80px">
+        <el-form-item label="相册名" prop="title">
+          <el-input size="medium" clearable v-model="createForm.title"></el-input>
         </el-form-item>
-        <el-form-item label="头像" prop="name">
+        <el-form-item label="相册封面" prop="coverImg">
           <el-upload
             class="avatar-uploader"
             :action="upUrl"
@@ -61,12 +69,12 @@
             :on-success="handleAvatarSuccess"
             multiple
             :before-upload="beforeAvatarUpload">
-            <img v-if="editInfo.avatar" :src="filePath + editInfo.avatar" class="avatar">
+            <img v-if="createForm.coverImg" :src="filePath + createForm.coverImg" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :disabled="submitFlag" :loading="submitFlag" @click="submitForm('editInfo')">提 交</el-button>
+          <el-button type="primary" :disabled="submitFlag" :loading="submitFlag" @click="submitForm('createForm')">提 交</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -75,57 +83,57 @@
 </template>
 
 <script>
-import { userList, userDel, userUpdate } from "@/api/user";
+import { photoAlbumList, photoAlbumAdd, photoAlbumUpdate, photoAlbumDel } from "@/api/photo";
 import { tablePageMixin } from '@/utils/mixin';
 export default {
-  name: "userList",
+  name: "photoList",
   mixins: [tablePageMixin],
   data() {
     return {
       upUrl: this.plus.upUrl,
       filePath: this.plus.filePath,
       list: [],
-      editInfo: {
-        userId:'',
-        name: '',
-        avatar: ''
+      createForm: {
+        title: '',
+        coverImg: ''
+      },
+      editRules: {
+        title: [
+          { required: true, message: '请输入相册名', trigger: 'blur' },
+        ],
+        coverImg: [
+          { required: true, message: '请上传相册封面', trigger: 'blur' },
+        ]
       },
       editShow: false,
-      submitFlag: false,
-      editRules: {
-        name: [
-          { required: true, message: '请输入用户名', trigger: 'blur' },
-        ],
-      }
-    };
+      submitFlag: false
+    }
   },
   methods: {
     getList() {
       this.tableloading = true
-      userList(this.query).then(res => {
+      photoAlbumList(this.query).then(res => {
         this.list = res.data.list;
         this.total = res.data.total;
         this.tableloading = false;
       });
     },
     handleEdit(item,index) {
-      this.editInfo = {
-        userId: '',
-        name: '',
-        avatar: ''
+      this.createForm = {
+        id: item.id,
+        title: item.title,
+        coverImg: item.coverImg
       }
-      this.editShow = true;
-      this.editInfo.userId = item.userId;
-      this.editInfo.name = item.name;
-      this.editInfo.avatar = item.avatar;
+      this.$refs.createForm && this.$refs.createForm.clearValidate()
+      this.editShow = true
     },
     handleDelete(item,index) {
-      this.$confirm('此操作将删除该用户, 是否继续?', '提示', {
+      this.$confirm('此操作将删除该相册, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        userDel({id:item.userId}).then(res => {
+        photoAlbumDel({id:item.id}).then(res => {
           if(res.status == 200) {
             this.$message({
               type: 'success',
@@ -136,8 +144,16 @@ export default {
         })
       })
     },
+    openAdd() {
+      this.createForm = {
+        title: '',
+        coverImg: ''
+      }
+      this.$refs.createForm && this.$refs.createForm.clearValidate()
+      this.editShow = true
+    },
     handleAvatarSuccess(res, file) {
-      this.editInfo.avatar = res.data.path;
+      this.createForm.coverImg = res.data.path;
     },
     beforeAvatarUpload(file, fileList) {
       const isJPG = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif'
@@ -152,26 +168,51 @@ export default {
       return isJPG && isLt2M
     },
     submitForm() {
-      this.$refs.editInfo.validate((valid) => {
+      this.$refs.createForm.validate((valid) => {
         if (valid) {
-          userUpdate(this.editInfo).then(res => {
-            if(res.status == 200) {
-              this.$message({
-                type: 'success',
-                message: '操作成功!'
-              });
-              this.editShow = false;
-              this.getList()
-            }
-          })
+          if (this.createForm.id) {
+            photoAlbumUpdate(this.createForm).then(res => {
+              if(res.status == 200) {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功!'
+                });
+                this.editShow = false;
+                this.getList()
+              }
+            })
+          } else {
+            photoAlbumAdd(this.createForm).then(res => {
+              if(res.status == 200) {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功!'
+                });
+                this.editShow = false;
+                this.getList()
+              }
+            })
+          }
+        }
+      })
+    },
+    // 跳转编辑
+    linkEdit(item, index) {
+      this.$router.push({
+        name: 'photoEdit',
+        params: {
+          album_id: item.id
         }
       })
     }
   },
   created() {
-    this.getList();
+    this.getList()
+  },
+  mounted() {
+    
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>

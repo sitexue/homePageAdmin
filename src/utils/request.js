@@ -48,6 +48,22 @@ service.interceptors.response.use(
     /**
      * code为非200是抛错 可结合自己业务进行修改
      */
+    console.log(response)
+    if (response === 'errError: Request failed with status code 401') {
+      MessageBox.confirm(
+        '你已被登出，可以取消继续留在该页面，或者重新登录',
+        '确定登出',
+        {
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).then(() => {
+        store.dispatch('FedLogOut').then(() => {
+          location.reload() // 为了重新实例化vue-router对象 避免bug
+        })
+      })
+    }
     const res = response.data
     if (res.status !== 200) {
       Message({
