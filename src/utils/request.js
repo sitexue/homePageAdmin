@@ -48,7 +48,6 @@ service.interceptors.response.use(
     /**
      * code为非200是抛错 可结合自己业务进行修改
      */
-    console.log(response)
     if (response === 'errError: Request failed with status code 401') {
       MessageBox.confirm(
         '你已被登出，可以取消继续留在该页面，或者重新登录',
@@ -93,12 +92,16 @@ service.interceptors.response.use(
     }
   },
   error => {
-    console.log('err' + error) // for debug
-    Message({
-      message: error.msg,
-      type: 'error',
-      duration: 5 * 1000
-    })
+    console.error('err' + error) // for debug
+    if (error.response) {
+      if (/^40\d$/.test(error.response.status)) {
+        Message({
+          message: error.response.statusText,
+          type: 'error',
+          duration: 5 * 1000
+        })
+      }
+    }
     return Promise.reject(error)
   }
 )
