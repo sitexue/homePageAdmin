@@ -33,6 +33,8 @@ export default {
   },
   data() {
     return {
+      filePath: this.plus.filePath,
+      richImageBaseUrl: this.plus.richImageBaseUrl,
       detail: {
         title: '',
         intro: '',
@@ -50,12 +52,19 @@ export default {
     getInfo() {
       talkInfo({id:this.id}).then(res => {
         if(res.status == 200) {
-          this.detail = res.data;
+          const detail = res.data;
+          // 将中间量转换为图片前缀地址
+          // const urlReg = RegExp(encodeURIComponent(this.richImageBaseUrl), 'g')
+          // detail.content = decodeURIComponent(encodeURIComponent(detail.content).replace(urlReg, this.filePath))
+          this.detail = detail;
         }
       })
     },
     submitForm(id){
       const params = this.detail
+      // 将图片前缀地址转换为中间量
+      // const urlReg = RegExp(encodeURIComponent(this.filePath), 'g')
+      // params.content = decodeURIComponent(encodeURIComponent(params.content).replace(urlReg, this.richImageBaseUrl))
       if (id) {
         params.id = id;
         talkUpdate(params).then(res => {

@@ -21,7 +21,8 @@ const filePath = process.env.VUE_APP_BASE_URL
 
 Vue.prototype.plus = {
   upUrl,
-  filePath
+  filePath,
+  richImageBaseUrl: 'http:xc-home-page-image-base-conversion-url/1994-02-14'
 };
 
 new Vue({
