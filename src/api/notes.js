@@ -39,3 +39,11 @@ export function notesUpdate(data) {
     data: data
   })
 }
+
+export function exportFile(data) {
+  return request({
+    url: '/notes/exportFile',
+    method: 'post',
+    data: data
+  })
+}

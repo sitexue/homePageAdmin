@@ -3,6 +3,7 @@
   <div class="table-box notes">
     <el-row class="table-box-title">
       <el-button type="primary" @click="linkAdd">新增笔记</el-button>
+      <el-button type="primary" @click="exportFile">导出笔记</el-button>
     </el-row>
     <el-table
       size="mini"
@@ -10,9 +11,11 @@
       width="100%"
       max-height="650"
       :data="list"
+      @selection-change="handleSelectionChange"
       v-loading="tableloading"
       element-loading-text="数据加载中..."
     >
+      <el-table-column type="selection"></el-table-column>
       <el-table-column label="序号" type="index" :index="tableIndex" align="center" fixed="left"></el-table-column>
       <el-table-column prop="title" label="标题" align="center"></el-table-column>
       <el-table-column prop="intro" label="简介" align="center"></el-table-column>
@@ -51,14 +54,16 @@
 </template>
 
 <script>
-import { notesList, notesDel } from "@/api/notes";
+import { notesList, notesDel, exportFile } from "@/api/notes";
 import { tablePageMixin } from '@/utils/mixin';
 export default {
   name: "notesList",
   mixins: [tablePageMixin],
   data() {
     return {
+      filePath: this.plus.filePath,
       list: [],
+      multipleSelection: []
     }
   },
   methods: {
@@ -93,6 +98,23 @@ export default {
     },
     linkAdd() {
       this.$router.push({name:'notesAdd'})
+    },
+    // 选择某块
+    handleSelectionChange(val) {
+      console.log(val)
+      this.multipleSelection = val
+    },
+    // 导出
+    exportFile() {
+      const idsA = []
+      this.multipleSelection.forEach(item => {
+        idsA.push(item.id)
+      })
+      const ids = idsA.join(',')
+      exportFile({ ids }).then(response => {
+        const url = response.data
+        window.location.href = this.filePath + url
+      })
     }
   },
   created() {
